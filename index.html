@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生信息管理系统 - 课程管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: #f5f5f5; min-height: 100vh; }
+        .header { background: #2c3e50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .nav { background: #34495e; height: 60px; display: flex; align-items: center; padding: 0 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 25px; font-size: 16px; padding: 5px 0; border-bottom: 2px solid transparent; }
+        .nav a:hover, .nav a.active { color: #3498db; border-bottom: 2px solid #3498db; }
+        .content { max-width: 1200px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .login-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .login-container h2 { text-align: center; margin-bottom: 20px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .search-bar { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .search-bar input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 500px; max-width: 90%; }
+        .modal h3 { margin-bottom: 20px; }
+        .modal-footer { margin-top: 20px; text-align: right; }
+        .action-buttons { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+    <!-- 导航栏（完整功能菜单） -->
+    <div class="nav">
+        <a href="#" onclick="showPage('student-list')">学生管理</a>
+        <a href="#" onclick="showPage('score-management')">成绩管理</a>
+        <a href="#" onclick="showPage('course-management')" class="active">课程管理</a>
+        <a href="#" onclick="showPage('settings')">系统设置</a>
+    </div>
+
+    
+
+    <!-- 学生列表页 -->
+    <div id="student-list" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>学生列表</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索学生姓名/学号">
+                <button class="btn">添加学生</button>
+            </div>
+            <table>
+                <tr><th>学号</th><th>姓名</th><th>专业</th><th>班级</th><th>操作</th></tr>
+                <tr><td>2023001</td><td>张三</td><td>计算机科学与技术</td><td>2023级1班</td><td><button class="btn">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+                <tr><td>2023002</td><td>李四</td><td>软件工程</td><td>2023级2班</td><td><button class="btn">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 成绩管理页 -->
+    <div id="score-management" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>成绩管理</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索课程/学生">
+                <button class="btn">录入成绩</button>
+            </div>
+            <table>
+                <tr><th>课程名称</th><th>学生姓名</th><th>学号</th><th>成绩</th><th>操作</th></tr>
+                <tr><td>Web开发基础</td><td>张三</td><td>2023001</td><td>90</td><td><button class="btn">修改</button></td></tr>
+                <tr><td>数据库原理</td><td>李四</td><td>2023002</td><td>85</td><td><button class="btn">修改</button></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 课程管理页（新增完整功能） -->
+    <div id="course-management" class="page active">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>课程管理</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索课程名称/课程号" id="courseSearch">
+                <button class="btn" onclick="showAddCourseModal()">添加课程</button>
+                <button class="btn" onclick="searchCourses()">搜索</button>
+            </div>
+            
+            <!-- 课程列表表格 -->
+            <table id="courseTable">
+                <tr>
+                    <th>课程号</th>
+                    <th>课程名称</th>
+                    <th>学分</th>
+                    <th>授课教师</th>
+                    <th>上课时间</th>
+                    <th>上课地点</th>
+                    <th>课程状态</th>
+                    <th>操作</th>
+                </tr>
+                <tr><td>C001</td><td>Web开发基础</td><td>3</td><td>王老师</td><td>周一/周三 14:00-16:00</td><td>计算机楼301</td><td>进行中</td><td><button class="btn" onclick="editCourse('C001')">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+                <tr><td>C002</td><td>数据库原理</td><td>4</td><td>李老师</td><td>周二/周四 09:00-11:00</td><td>计算机楼205</td><td>进行中</td><td><button class="btn" onclick="editCourse('C002')">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+                <tr><td>C003</td><td>操作系统</td><td>4</td><td>张老师</td><td>周一/周五 10:00-12:00</td><td>计算机楼103</td><td>未开始</td><td><button class="btn" onclick="editCourse('C003')">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+                <tr><td>C004</td><td>人工智能导论</td><td>3</td><td>刘老师</td><td>周三/周五 15:00-17:00</td><td>计算机楼402</td><td>已结束</td><td><button class="btn" onclick="editCourse('C004')">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+                <tr><td>C005</td><td>数据结构</td><td>4</td><td>赵老师</td><td>周二/周四 14:00-16:00</td><td>计算机楼305</td><td>进行中</td><td><button class="btn" onclick="editCourse('C005')">编辑</button><button class="btn btn-danger">删除</button></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 添加/编辑课程模态框 -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">添加课程</h3>
+            <form id="courseForm">
+                <div class="form-group">
+                    <label>课程号</label>
+                    <input type="text" id="courseId" readonly placeholder="系统自动生成">
+                </div>
+                <div class="form-group">
+                    <label>课程名称 *</label>
+                    <input type="text" id="courseName" required placeholder="请输入课程名称">
+                </div>
+                <div class="form-group">
+                    <label>学分 *</label>
+                    <input type="number" id="courseCredit" required min="1" max="6" placeholder="1-6学分">
+                </div>
+                <div class="form-group">
+                    <label>授课教师 *</label>
+                    <input type="text" id="courseTeacher" required placeholder="请输入教师姓名">
+                </div>
+                <div class="form-group">
+                    <label>上课时间</label>
+                    <input type="text" id="courseTime" placeholder="如：周一/周三 14:00-16:00">
+                </div>
+                <div class="form-group">
+                    <label>上课地点</label>
+                    <input type="text" id="courseLocation" placeholder="如：计算机楼301">
+                </div>
+                <div class="form-group">
+                    <label>课程状态 *</label>
+                    <select id="courseStatus" required>
+                        <option value="进行中">进行中</option>
+                        <option value="未开始">未开始</option>
+                        <option value="已结束">已结束</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">取消</button>
+                    <button type="submit" class="btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 系统设置页 -->
+    <div id="settings" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>系统设置</h2>
+            <div class="form-group">
+                <label>原密码</label>
+                <input type="password" placeholder="请输入原密码">
+            </div>
+            <div class="form-group">
+                <label>新密码</label>
+                <input type="password" placeholder="请输入新密码">
+            </div>
+            <div class="form-group">
+                <label>确认新密码</label>
+                <input type="password" placeholder="请再次输入新密码">
+            </div>
+            <button class="btn">保存修改</button>
+        </div>
+    </div>
+
+    <script>
+        // 页面切换功能
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav a').forEach(link => link.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelector(`.nav a[onclick="showPage('${pageId}')"]`).classList.add('active');
+        }
+
+        // 课程管理相关功能
+        let currentEditCourseId = null;
+        const modal = document.getElementById('courseModal');
+
+        // 显示添加课程模态框
+        function showAddCourseModal() {
+            currentEditCourseId = null;
+            document.getElementById('modalTitle').textContent = '添加课程';
+            document.getElementById('courseId').value = '';
+            document.getElementById('courseId').readonly = true;
+            document.getElementById('courseForm').reset();
+            modal.style.display = 'flex';
+        }
+
+        // 编辑课程
+        function editCourse(courseId) {
+            currentEditCourseId = courseId;
+            document.getElementById('modalTitle').textContent = '编辑课程';
+            document.getElementById('courseId').value = courseId;
+            
+            // 根据课程ID填充表单数据（实际项目中从数据库获取，这里模拟数据）
+            const courseData = {
+                'C001': {name: 'Web开发基础', credit: 3, teacher: '王老师', time: '周一/周三 14:00-16:00', location: '计算机楼301', status: '进行中'},
+                'C002': {name: '数据库原理', credit: 4, teacher: '李老师', time: '周二/周四 09:00-11:00', location: '计算机楼205', status: '进行中'},
+                'C003': {name: '操作系统', credit: 4, teacher: '张老师', time: '周一/周五 10:00-12:00', location: '计算机楼103', status: '未开始'},
+                'C004': {name: '人工智能导论', credit: 3, teacher: '刘老师', time: '周三/周五 15:00-17:00', location: '计算机楼402', status: '已结束'},
+                'C005': {name: '数据结构', credit: 4, teacher: '赵老师', time: '周二/周四 14:00-16:00', location: '计算机楼305', status: '进行中'}
+            };
+            
+            if (courseData[courseId]) {
+                const data = courseData[courseId];
+                document.getElementById('courseName').value = data.name;
+                document.getElementById('courseCredit').value = data.credit;
+                document.getElementById('courseTeacher').value = data.teacher;
+                document.getElementById('courseTime').value = data.time;
+                document.getElementById('courseLocation').value = data.location;
+                document.getElementById('courseStatus').value = data.status;
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // 搜索课程
+        function searchCourses() {
+            const searchTerm = document.getElementById('courseSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#courseTable tr:not(:first-child)');
+            
+            rows.forEach(row => {
+                const courseName = row.cells[1].textContent.toLowerCase();
+                const courseId = row.cells[0].textContent.toLowerCase();
+                row.style.display = (courseName.includes(searchTerm) || courseId.includes(searchTerm)) ? '' : 'none';
+            });
+        }
+
+        // 表单提交处理
+        document.getElementById('courseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert(currentEditCourseId ? '课程编辑成功！' : '课程添加成功！');
+            closeModal();
+        });
+
+        // 初始化页面显示
+        showPage('course-management');
+    </script>
+</body>
+</html>
