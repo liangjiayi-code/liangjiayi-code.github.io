@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生信息管理系统 - 课程管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: #f5f5f5; min-height: 100vh; }
+        .header { background: #2c3e50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .nav { background: #34495e; height: 60px; display: flex; align-items: center; padding: 0 20px; }
+        .nav a { color: white; text-decoration: none; margin-right: 25px; font-size: 16px; padding: 5px 0; border-bottom: 2px solid transparent; }
+        .nav a:hover, .nav a.active { color: #3498db; border-bottom: 2px solid #3498db; }
+        .content { max-width: 1200px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .page { display: none; }
+        .page.active { display: block; }
+        .login-container { max-width: 400px; margin: 100px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .login-container h2 { text-align: center; margin-bottom: 20px; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background: #3498db; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        .btn:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .search-bar { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+        .search-bar input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 500px; max-width: 90%; }
+        .modal h3 { margin-bottom: 20px; }
+        .modal-footer { margin-top: 20px; text-align: right; }
+        .action-buttons { display: flex; gap: 5px; }
+        .error-message { color: #e74c3c; font-size: 12px; margin-top: 5px; display: none; }
+        .empty-state { text-align: center; padding: 40px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <a href="#" onclick="showPage('student-list')">学生管理</a>
+        <a href="#" onclick="showPage('score-management')">成绩管理</a>
+        <a href="#" onclick="showPage('course-management')" class="active">课程管理</a>
+        <a href="#" onclick="showPage('settings')">系统设置</a>
+    </div>
+    
+    <!-- 学生列表页 -->
+    <div id="student-list" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>学生列表</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索学生姓名/学号" id="studentSearch">
+                <button class="btn" onclick="showAddStudentModal()">添加学生</button>
+                <button class="btn" onclick="searchStudents()">搜索</button>
+            </div>
+            <table id="studentTable">
+                <tr><th>学号</th><th>姓名</th><th>专业</th><th>班级</th><th>操作</th></tr>
+            </table>
+            <div id="studentEmptyState" class="empty-state" style="display: none;">
+                <p>暂无学生数据，请添加学生</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成绩管理页 -->
+    <div id="score-management" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>成绩管理</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索课程/学生" id="scoreSearch">
+                <button class="btn" onclick="showAddScoreModal()">录入成绩</button>
+                <button class="btn" onclick="searchScores()">搜索</button>
+            </div>
+            <table id="scoreTable">
+                <tr><th>课程名称</th><th>学生姓名</th><th>学号</th><th>成绩</th><th>操作</th></tr>
+            </table>
+            <div id="scoreEmptyState" class="empty-state" style="display: none;">
+                <p>暂无成绩数据，请录入成绩</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 课程管理页 -->
+    <div id="course-management" class="page active">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>课程管理</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="搜索课程名称/课程号" id="courseSearch">
+                <button class="btn" onclick="showAddCourseModal()">添加课程</button>
+                <button class="btn" onclick="searchCourses()">搜索</button>
+            </div>
+            
+            <table id="courseTable">
+                <tr>
+                    <th>课程号</th>
+                    <th>课程名称</th>
+                    <th>学分</th>
+                    <th>授课教师</th>
+                    <th>上课时间</th>
+                    <th>上课地点</th>
+                    <th>课程状态</th>
+                    <th>操作</th>
+                </tr>
+            </table>
+            <div id="courseEmptyState" class="empty-state" style="display: none;">
+                <p>暂无课程数据，请添加课程</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统设置页 -->
+    <div id="settings" class="page">
+        <div class="header">
+            <h1>学生信息管理系统</h1>
+            <span>欢迎您，梁佳怡</span>
+        </div>
+        <div class="content">
+            <h2>系统设置</h2>
+            <div class="form-group">
+                <label>原密码</label>
+                <input type="password" id="oldPassword" placeholder="请输入原密码">
+                <div class="error-message" id="oldPwdError"></div>
+            </div>
+            <div class="form-group">
+                <label>新密码</label>
+                <input type="password" id="newPassword" placeholder="请输入新密码（6-16位）">
+                <div class="error-message" id="newPwdError"></div>
+            </div>
+            <div class="form-group">
+                <label>确认新密码</label>
+                <input type="password" id="confirmPassword" placeholder="请再次输入新密码">
+                <div class="error-message" id="confirmPwdError"></div>
+            </div>
+            <button class="btn" onclick="changePassword()">保存修改</button>
+            <div id="pwdSuccessMsg" style="margin-top: 15px; color: #27ae60; display: none;">密码修改成功！</div>
+        </div>
+    </div>
+
+    <!-- 课程模态框（添加/编辑） -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">添加课程</h3>
+            <form id="courseForm">
+                <div class="form-group">
+                    <label>课程号</label>
+                    <input type="text" id="courseId" readonly placeholder="系统自动生成">
+                </div>
+                <div class="form-group">
+                    <label>课程名称 *</label>
+                    <input type="text" id="courseName" required placeholder="请输入课程名称">
+                    <div class="error-message" id="courseNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label>学分 *</label>
+                    <input type="number" id="courseCredit" required min="1" max="6" placeholder="1-6学分">
+                    <div class="error-message" id="courseCreditError"></div>
+                </div>
+                <div class="form-group">
+                    <label>授课教师 *</label>
+                    <input type="text" id="courseTeacher" required placeholder="请输入教师姓名">
+                    <div class="error-message" id="courseTeacherError"></div>
+                </div>
+                <div class="form-group">
+                    <label>上课时间</label>
+                    <input type="text" id="courseTime" placeholder="如：周一/周三 14:00-16:00">
+                </div>
+                <div class="form-group">
+                    <label>上课地点</label>
+                    <input type="text" id="courseLocation" placeholder="如：计算机楼301">
+                </div>
+                <div class="form-group">
+                    <label>课程状态 *</label>
+                    <select id="courseStatus" required>
+                        <option value="进行中">进行中</option>
+                        <option value="未开始">未开始</option>
+                        <option value="已结束">已结束</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="closeModal('courseModal')">取消</button>
+                    <button type="submit" class="btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 学生模态框（添加/编辑） -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <h3 id="studentModalTitle">添加学生</h3>
+            <form id="studentForm">
+                <div class="form-group">
+                    <label>学号 *</label>
+                    <input type="text" id="studentId" required placeholder="请输入学号（如：2023001）">
+                    <div class="error-message" id="studentIdError"></div>
+                </div>
+                <div class="form-group">
+                    <label>姓名 *</label>
+                    <input type="text" id="studentName" required placeholder="请输入学生姓名">
+                    <div class="error-message" id="studentNameError"></div>
+                </div>
+                <div class="form-group">
+                    <label>专业 *</label>
+                    <input type="text" id="studentMajor" required placeholder="请输入专业名称">
+                    <div class="error-message" id="studentMajorError"></div>
+                </div>
+                <div class="form-group">
+                    <label>班级 *</label>
+                    <input type="text" id="studentClass" required placeholder="如：2023级1班">
+                    <div class="error-message" id="studentClassError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="closeModal('studentModal')">取消</button>
+                    <button type="submit" class="btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 成绩模态框（添加/编辑） -->
+    <div id="scoreModal" class="modal">
+        <div class="modal-content">
+            <h3 id="scoreModalTitle">录入成绩</h3>
+            <form id="scoreForm">
+                <div class="form-group">
+                    <label>课程名称 *</label>
+                    <select id="scoreCourse" required>
+                        <option value="">请选择课程</option>
+                    </select>
+                    <div class="error-message" id="scoreCourseError"></div>
+                </div>
+                <div class="form-group">
+                    <label>学生 *</label>
+                    <select id="scoreStudent" required>
+                        <option value="">请选择学生</option>
+                    </select>
+                    <div class="error-message" id="scoreStudentError"></div>
+                </div>
+                <div class="form-group">
+                    <label>成绩 *</label>
+                    <input type="number" id="scoreValue" required min="0" max="100" placeholder="0-100分">
+                    <div class="error-message" id="scoreValueError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="closeModal('scoreModal')">取消</button>
+                    <button type="submit" class="btn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 全局数据存储（使用localStorage实现持久化）
+        const DataStore = {
+            // 初始化数据
+            init() {
+                // 课程初始数据
+                if (!localStorage.getItem('courses')) {
+                    const initCourses = [
+                        {id: 'C001', name: 'Web开发基础', credit: 3, teacher: '王老师', time: '周一/周三 14:00-16:00', location: '计算机楼301', status: '进行中'},
+                        {id: 'C002', name: '数据库原理', credit: 4, teacher: '李老师', time: '周二/周四 09:00-11:00', location: '计算机楼205', status: '进行中'},
+                        {id: 'C003', name: '操作系统', credit: 4, teacher: '张老师', time: '周一/周五 10:00-12:00', location: '计算机楼103', status: '未开始'},
+                        {id: 'C004', name: '人工智能导论', credit: 3, teacher: '刘老师', time: '周三/周五 15:00-17:00', location: '计算机楼402', status: '已结束'},
+                        {id: 'C005', name: '数据结构', credit: 4, teacher: '赵老师', time: '周二/周四 14:00-16:00', location: '计算机楼305', status: '进行中'}
+                    ];
+                    localStorage.setItem('courses', JSON.stringify(initCourses));
+                }
+
+                // 学生初始数据
+                if (!localStorage.getItem('students')) {
+                    const initStudents = [
+                        {id: '2023001', name: '张三', major: '计算机科学与技术', class: '2023级1班'},
+                        {id: '2023002', name: '李四', major: '软件工程', class: '2023级2班'}
+                    ];
+                    localStorage.setItem('students', JSON.stringify(initStudents));
+                }
+
+                // 成绩初始数据
+                if (!localStorage.getItem('scores')) {
+                    const initScores = [
+                        {courseId: 'C001', studentId: '2023001', score: 90},
+                        {courseId: 'C002', studentId: '2023002', score: 85}
+                    ];
+                    localStorage.setItem('scores', JSON.stringify(initScores));
+                }
+            },
+
+            // 课程数据操作
+            courses: {
+                get all() { return JSON.parse(localStorage.getItem('courses') || '[]'); },
+                getById(id) { return this.all.find(item => item.id === id); },
+                add(data) { 
+                    const courses = this.all;
+                    courses.push(data);
+                    localStorage.setItem('courses', JSON.stringify(courses));
+                },
+                update(id, data) {
+                    const courses = this.all;
+                    const index = courses.findIndex(item => item.id === id);
+                    if (index !== -1) {
+                        courses[index] = {...courses[index], ...data};
+                        localStorage.setItem('courses', JSON.stringify(courses));
+                    }
+                },
+                delete(id) {
+                    const courses = this.all.filter(item => item.id !== id);
+                    localStorage.setItem('courses', JSON.stringify(courses));
+                },
+                generateId() {
+                    const courses = this.all;
+                    if (courses.length === 0) return 'C001';
+                    const lastId = courses[courses.length - 1].id;
+                    const num = parseInt(lastId.slice(1)) + 1;
+                    return `C${String(num).padStart(3, '0')}`;
+                }
+            },
+
+            // 学生数据操作
+            students: {
+                get all() { return JSON.parse(localStorage.getItem('students') || '[]'); },
+                getById(id) { return this.all.find(item => item.id === id); },
+                add(data) { 
+                    const students = this.all;
+                    students.push(data);
+                    localStorage.setItem('students', JSON.stringify(students));
+                },
+                update(id, data) {
+                    const students = this.all;
+                    const index = students.findIndex(item => item.id === id);
+                    if (index !== -1) {
+                        students[index] = {...students[index], ...data};
+                        localStorage.setItem('students', JSON.stringify(students));
+                    }
+                },
+                delete(id) {
+                    const students = this.all.filter(item => item.id !== id);
+                    localStorage.setItem('students', JSON.stringify(students));
+                    
+                    // 删除关联的成绩
+                    const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+                    const newScores = scores.filter(score => score.studentId !== id);
+                    localStorage.setItem('scores', JSON.stringify(newScores));
+                }
+            },
+
+            // 成绩数据操作
+            scores: {
+                get all() { return JSON.parse(localStorage.getItem('scores') || '[]'); },
+                getByKey(courseId, studentId) { 
+                    return this.all.find(item => item.courseId === courseId && item.studentId === studentId);
+                },
+                add(data) { 
+                    const scores = this.all;
+                    // 检查是否已存在相同记录
+                    const exists = scores.some(item => item.courseId === data.courseId && item.studentId === data.studentId);
+                    if (!exists) {
+                        scores.push(data);
+                        localStorage.setItem('scores', JSON.stringify(scores));
+                        return true;
+                    }
+                    return false;
+                },
+                update(courseId, studentId, score) {
+                    const scores = this.all;
+                    const index = scores.findIndex(item => item.courseId === courseId && item.studentId === studentId);
+                    if (index !== -1) {
+                        scores[index].score = score;
+                        localStorage.setItem('scores', JSON.stringify(scores));
+                    }
+                },
+                delete(courseId, studentId) {
+                    const scores = this.all.filter(item => !(item.courseId === courseId && item.studentId === studentId));
+                    localStorage.setItem('scores', JSON.stringify(scores));
+                }
+            }
+        };
+
+        // 页面切换功能
+        function showPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            // 移除所有导航激活状态
+            document.querySelectorAll('.nav a').forEach(link => link.classList.remove('active'));
+            // 显示目标页面
+            document.getElementById(pageId).classList.add('active');
+            // 激活目标导航
+            document.querySelector(`.nav a[onclick="showPage('${pageId}')"]`).classList.add('active');
+            
+            // 页面切换时刷新数据
+            if (pageId === 'course-management') renderCourseTable();
+            if (pageId === 'student-list') renderStudentTable();
+            if (pageId === 'score-management') {
+                renderScoreTable();
+                loadScoreFormOptions();
+            }
+        }
+
+        // ------------------------------ 课程管理功能 ------------------------------
+        let currentCourseId = null; // 当前编辑的课程ID
+
+        // 显示添加课程模态框
+        function showAddCourseModal() {
+            currentCourseId = null;
+            const modal = document.getElementById('courseModal');
+            document.getElementById('modalTitle').textContent = '添加课程';
+            document.getElementById('courseId').value = '';
+            document.getElementById('courseForm').reset();
+            clearAllErrors('course');
+            modal.style.display = 'flex';
+        }
+
+        // 显示编辑课程模态框
+        function editCourse(courseId) {
+            currentCourseId = courseId;
+            const modal = document.getElementById('courseModal');
+            const course = DataStore.courses.getById(courseId);
+            
+            if (course) {
+                document.getElementById('modalTitle').textContent = '编辑课程';
+                document.getElementById('courseId').value = course.id;
+                document.getElementById('courseName').value = course.name;
+                document.getElementById('courseCredit').value = course.credit;
+                document.getElementById('courseTeacher').value = course.teacher;
+                document.getElementById('courseTime').value = course.time;
+                document.getElementById('courseLocation').value = course.location;
+                document.getElementById('courseStatus').value = course.status;
+                clearAllErrors('course');
+                modal.style.display = 'flex';
+            }
+        }
+
+        // 渲染课程表格
+        function renderCourseTable(filteredData = null) {
+            const table = document.getElementById('courseTable');
+            const emptyState = document.getElementById('courseEmptyState');
+            const courses = filteredData || DataStore.courses.all;
+            
+            // 清空表格内容（保留表头）
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // 显示空状态或渲染数据
+            if (courses.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            // 添加课程数据行
+            courses.forEach(course => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${course.id}</td>
+                    <td>${course.name}</td>
+                    <td>${course.credit}</td>
+                    <td>${course.teacher}</td>
+                    <td>${course.time || '-'}</td>
+                    <td>${course.location || '-'}</td>
+                    <td>${course.status}</td>
+                    <td class="action-buttons">
+                        <button class="btn" onclick="editCourse('${course.id}')">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">删除</button>
+                    </td>
+                `;
+            });
+        }
+
+        // 删除课程
+        function deleteCourse(courseId) {
+            if (confirm('确定要删除这门课程吗？删除后相关成绩也会被清除！')) {
+                // 删除课程
+                DataStore.courses.delete(courseId);
+                // 删除关联的成绩
+                const scores = DataStore.scores.all;
+                const newScores = scores.filter(score => score.courseId !== courseId);
+                localStorage.setItem('scores', JSON.stringify(newScores));
+                // 重新渲染表格
+                renderCourseTable();
+                // 更新成绩表单的课程选项
+                loadScoreFormOptions();
+            }
+        }
+
+        // 搜索课程
+        function searchCourses() {
+            const searchTerm = document.getElementById('courseSearch').value.toLowerCase().trim();
+            const courses = DataStore.courses.all;
+            
+            if (!searchTerm) {
+                renderCourseTable();
+                return;
+            }
+
+            // 按课程号或课程名称搜索
+            const filtered = courses.filter(course => 
+                course.id.toLowerCase().includes(searchTerm) || 
+                course.name.toLowerCase().includes(searchTerm)
+            );
+            renderCourseTable(filtered);
+        }
+
+        // 课程表单验证
+        function validateCourseForm() {
+            let isValid = true;
+            const name = document.getElementById('courseName').value.trim();
+            const credit = document.getElementById('courseCredit').value;
+            const teacher = document.getElementById('courseTeacher').value.trim();
+
+            // 验证课程名称
+            if (!name) {
+                showError('courseNameError', '课程名称不能为空');
+                isValid = false;
+            } else {
+                hideError('courseNameError');
+            }
+
+            // 验证学分
+            if (!credit || credit < 1 || credit > 6) {
+                showError('courseCreditError', '请输入1-6之间的有效学分');
+                isValid = false;
+            } else {
+                hideError('courseCreditError');
+            }
+
+            // 验证教师姓名
+            if (!teacher) {
+                showError('courseTeacherError', '教师姓名不能为空');
+                isValid = false;
+            } else {
+                hideError('courseTeacherError');
+            }
+
+            return isValid;
+        }
+
+        // ------------------------------ 学生管理功能 ------------------------------
+        let currentStudentId = null; // 当前编辑的学生ID
+
+        // 显示添加学生模态框
+        function showAddStudentModal() {
+            currentStudentId = null;
+            const modal = document.getElementById('studentModal');
+            document.getElementById('studentModalTitle').textContent = '添加学生';
+            document.getElementById('studentForm').reset();
+            clearAllErrors('student');
+            modal.style.display = 'flex';
+        }
+
+        // 显示编辑学生模态框
+        function editStudent(studentId) {
+            currentStudentId = studentId;
+            const modal = document.getElementById('studentModal');
+            const student = DataStore.students.getById(studentId);
+            
+            if (student) {
+                document.getElementById('studentModalTitle').textContent = '编辑学生';
+                document.getElementById('studentId').value = student.id;
+                document.getElementById('studentId').readOnly = true; // 学号不可修改
+                document.getElementById('studentName').value = student.name;
+                document.getElementById('studentMajor').value = student.major;
+                document.getElementById('studentClass').value = student.class;
+                clearAllErrors('student');
+                modal.style.display = 'flex';
+            }
+        }
+
+        // 渲染学生表格
+        function renderStudentTable(filteredData = null) {
+            const table = document.getElementById('studentTable');
+            const emptyState = document.getElementById('studentEmptyState');
+            const students = filteredData || DataStore.students.all;
+            
+            // 清空表格内容（保留表头）
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // 显示空状态或渲染数据
+            if (students.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            // 添加学生数据行
+            students.forEach(student => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.major}</td>
+                    <td>${student.class}</td>
+                    <td class="action-buttons">
+                        <button class="btn" onclick="editStudent('${student.id}')">编辑</button>
+                        <button class="btn btn-danger" onclick="deleteStudent('${student.id}')">删除</button>
+                    </td>
+                `;
+            });
+        }
+
+        // 删除学生
+        function deleteStudent(studentId) {
+            if (confirm('确定要删除这名学生吗？删除后相关成绩也会被清除！')) {
+                DataStore.students.delete(studentId);
+                renderStudentTable();
+                renderScoreTable(); // 同时更新成绩表格
+                loadScoreFormOptions(); // 更新成绩表单的学生选项
+            }
+        }
+
+        // 搜索学生
+        function searchStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase().trim();
+            const students = DataStore.students.all;
+            
+            if (!searchTerm) {
+                renderStudentTable();
+                return;
+            }
+
+            // 按学号或姓名搜索
+            const filtered = students.filter(student => 
+                student.id.toLowerCase().includes(searchTerm) || 
+                student.name.toLowerCase().includes(searchTerm)
+            );
+            renderStudentTable(filtered);
+        }
+
+        // 学生表单验证
+        function validateStudentForm() {
+            let isValid = true;
+            const id = document.getElementById('studentId').value.trim();
+            const name = document.getElementById('studentName').value.trim();
+            const major = document.getElementById('studentMajor').value.trim();
+            const classVal = document.getElementById('studentClass').value.trim();
+
+            // 验证学号
+            if (!id) {
+                showError('studentIdError', '学号不能为空');
+                isValid = false;
+            } else if (currentStudentId === null && DataStore.students.getById(id)) {
+                showError('studentIdError', '该学号已存在');
+                isValid = false;
+            } else {
+                hideError('studentIdError');
+            }
+
+            // 验证姓名
+            if (!name) {
+                showError('studentNameError', '姓名不能为空');
+                isValid = false;
+            } else {
+                hideError('studentNameError');
+            }
+
+            // 验证专业
+            if (!major) {
+                showError('studentMajorError', '专业不能为空');
+                isValid = false;
+            } else {
+                hideError('studentMajorError');
+            }
+
+            // 验证班级
+            if (!classVal) {
+                showError('studentClassError', '班级不能为空');
+                isValid = false;
+            } else {
+                hideError('studentClassError');
+            }
+
+            return isValid;
+        }
+
+        // ------------------------------ 成绩管理功能 ------------------------------
+        let currentScoreKey = {courseId: null, studentId: null}; // 当前编辑的成绩标识
+
+        // 显示添加成绩模态框
+        function showAddScoreModal() {
+            currentScoreKey = {courseId: null, studentId: null};
+            const modal = document.getElementById('scoreModal');
+            document.getElementById('scoreModalTitle').textContent = '录入成绩';
+            document.getElementById('scoreForm').reset();
+            clearAllErrors('score');
+            modal.style.display = 'flex';
+        }
+
+        // 显示编辑成绩模态框
+        function editScore(courseId, studentId) {
+            currentScoreKey = {courseId, studentId};
+            const modal = document.getElementById('scoreModal');
+            const score = DataStore.scores.getByKey(courseId, studentId);
+            const course = DataStore.courses.getById(courseId);
+            const student = DataStore.students.getById(studentId);
+            
+            if (score && course && student) {
+                document.getElementById('scoreModalTitle').textContent = '修改成绩';
+                document.getElementById('scoreCourse').value = courseId;
+                document.getElementById('scoreStudent').value = studentId;
+                document.getElementById('scoreValue').value = score.score;
+                // 禁用下拉选择（编辑时不允许修改课程和学生）
+                document.getElementById('scoreCourse').disabled = true;
+                document.getElementById('scoreStudent').disabled = true;
+                clearAllErrors('score');
+                modal.style.display = 'flex';
+            }
+        }
+
+        // 加载成绩表单的课程和学生选项
+        function loadScoreFormOptions() {
+            const courseSelect = document.getElementById('scoreCourse');
+            const studentSelect = document.getElementById('scoreStudent');
+            
+            // 清空现有选项（保留默认选项）
+            while (courseSelect.options.length > 1) {
+                courseSelect.remove(1);
+            }
+            while (studentSelect.options.length > 1) {
+                studentSelect.remove(1);
+            }
+
+            // 添加课程选项
+            const courses = DataStore.courses.all;
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = `${course.id} - ${course.name}`;
+                courseSelect.appendChild(option);
+            });
+
+            // 添加学生选项
+            const students = DataStore.students.all;
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.id} - ${student.name}`;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        // 渲染成绩表格
+        function renderScoreTable(filteredData = null) {
+            const table = document.getElementById('scoreTable');
+            const emptyState = document.getElementById('scoreEmptyState');
+            const scores = filteredData || DataStore.scores.all;
+            
+            // 清空表格内容（保留表头）
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // 显示空状态或渲染数据
+            if (scores.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            // 添加成绩数据行
+            scores.forEach(score => {
+                const course = DataStore.courses.getById(score.courseId);
+                const student = DataStore.students.getById(score.studentId);
+                
+                if (course && student) {
+                    const row = table.insertRow();
+                    row.innerHTML = `
+                        <td>${course.name}</td>
+                        <td>${student.name}</td>
+                        <td>${student.id}</td>
+                        <td>${score.score}</td>
+                        <td class="action-buttons">
+                            <button class="btn" onclick="editScore('${course.id}', '${student.id}')">修改</button>
+                            <button class="btn btn-danger" onclick="deleteScore('${course.id}', '${student.id}')">删除</button>
+                        </td>
+                    `;
+                }
+            });
+        }
+
+        // 删除成绩
+        function deleteScore(courseId, studentId) {
+            if (confirm('确定要删除这条成绩记录吗？')) {
+                DataStore.scores.delete(courseId, studentId);
+                renderScoreTable();
+            }
+        }
+
+        // 搜索成绩
+        function searchScores() {
+            const searchTerm = document.getElementById('scoreSearch').value.toLowerCase().trim();
+            const scores = DataStore.scores.all;
+            
+            if (!searchTerm) {
+                renderScoreTable();
+                return;
+            }
+
+            // 按课程名称、学生姓名或学号搜索
+            const filtered = scores.filter(score => {
+                const course = DataStore.courses.getById(score.courseId);
+                const student = DataStore.students.getById(score.studentId);
+                return (course && course.name.toLowerCase().includes(searchTerm)) ||
+                       (student && (student.name.toLowerCase().includes(searchTerm) || 
+                                   student.id.toLowerCase().includes(searchTerm)));
+            });
+            renderScoreTable(filtered);
+        }
+
+        // 成绩表单验证
+        function validateScoreForm() {
+            let isValid = true;
+            const courseId = document.getElementById('scoreCourse').value;
+            const studentId = document.getElementById('scoreStudent').value;
+            const score = document.getElementById('scoreValue').value;
+
+            // 验证课程选择
+            if (!courseId) {
+                showError('scoreCourseError', '请选择课程');
+                isValid = false;
+            } else {
+                hideError('scoreCourseError');
+            }
+
+            // 验证学生选择
+            if (!studentId) {
+                showError('scoreStudentError', '请选择学生');
+                isValid = false;
+            } else {
+                hideError('scoreStudentError');
+            }
+
+            // 验证成绩
+            if (!score || score < 0 || score > 100) {
+                showError('scoreValueError', '请输入0-100之间的有效成绩');
+                isValid = false;
+            } else {
+                hideError('scoreValueError');
+            }
+
+            // 验证记录是否已存在（添加时）
+            if (currentScoreKey.courseId === null && DataStore.scores.getByKey(courseId, studentId)) {
+                showError('scoreStudentError', '该学生的这门课程成绩已存在');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // ------------------------------ 系统设置功能 ------------------------------
+        // 修改密码
+        function changePassword() {
+            const oldPwd = document.getElementById('oldPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmPassword').value;
+            const successMsg = document.getElementById('pwdSuccessMsg');
+            
+            // 清空之前的错误提示和成功信息
+            clearAllErrors('pwd');
+            successMsg.style.display = 'none';
+
+            // 简单验证（实际项目中应与后端密码校验）
+            if (oldPwd !== '123456') { // 假设初始密码为123456
+                showError('oldPwdError', '原密码不正确');
+                return;
+            }
+
+            if (newPwd.length < 6 || newPwd.length > 16) {
+                showError('newPwdError', '新密码长度必须为6-16位');
+                return;
+            }
+
+            if (newPwd !== confirmPwd) {
+                showError('confirmPwdError', '两次输入的密码不一致');
+                return;
+            }
+
+            // 密码修改成功
+            successMsg.style.display = 'block';
+            // 清空表单
+            document.getElementById('oldPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            
+            // 实际项目中应将新密码提交到后端保存
+            alert('密码修改成功，请重新登录！');
+        }
+
+        // ------------------------------ 通用工具函数 ------------------------------
+        // 关闭模态框
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+            
+            // 如果是成绩模态框，恢复下拉框可用状态
+            if (modalId === 'scoreModal') {
+                document.getElementById('scoreCourse').disabled = false;
+                document.getElementById('scoreStudent').disabled = false;
+            }
+
+            // 如果是学生模态框，恢复学号输入框可编辑状态
+            if (modalId === 'studentModal') {
+                document.getElementById('studentId').readOnly = false;
+            }
+        }
+
+        // 显示错误提示
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // 隐藏错误提示
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = '';
+            errorElement.style.display = 'none';
+        }
+
+        // 清空指定类型的所有错误提示
+        function clearAllErrors(type) {
+            if (type === 'course') {
+                hideError('courseNameError');
+                hideError('courseCreditError');
+                hideError('courseTeacherError');
+            } else if (type === 'student') {
+                hideError('studentIdError');
+                hideError('studentNameError');
+                hideError('studentMajorError');
+                hideError('studentClassError');
+            } else if (type === 'score') {
+                hideError('scoreCourseError');
+                hideError('scoreStudentError');
+                hideError('scoreValueError');
+            } else if (type === 'pwd') {
+                hideError('oldPwdError');
+                hideError('newPwdError');
+                hideError('confirmPwdError');
+            }
+        }
+
+        // ------------------------------ 表单提交事件绑定 ------------------------------
+        // 课程表单提交
+        document.getElementById('courseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateCourseForm()) {
+                const courseData = {
+                    name: document.getElementById('courseName').value.trim(),
+                    credit: parseInt(document.getElementById('courseCredit').value),
+                    teacher: document.getElementById('courseTeacher').value.trim(),
+                    time: document.getElementById('courseTime').value.trim() || '',
+                    location: document.getElementById('courseLocation').value.trim() || '',
+                    status: document.getElementById('courseStatus').value
+                };
+
+                if (currentCourseId === null) {
+                    // 添加课程
+                    courseData.id = DataStore.courses.generateId();
+                    DataStore.courses.add(courseData);
+                    alert('课程添加成功！');
+                } else {
+                    // 编辑课程
+                    DataStore.courses.update(currentCourseId, courseData);
+                    alert('课程编辑成功！');
+                }
+
+                // 关闭模态框并刷新表格
+                closeModal('courseModal');
+                renderCourseTable();
+                loadScoreFormOptions(); // 更新成绩表单的课程选项
+            }
+        });
+
+        // 学生表单提交
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateStudentForm()) {
+                const studentData = {
+                    id: document.getElementById('studentId').value.trim(),
+                    name: document.getElementById('studentName').value.trim(),
+                    major: document.getElementById('studentMajor').value.trim(),
+                    class: document.getElementById('studentClass').value.trim()
+                };
+
+                if (currentStudentId === null) {
+                    // 添加学生
+                    DataStore.students.add(studentData);
+                    alert('学生添加成功！');
+                } else {
+                    // 编辑学生
+                    DataStore.students.update(currentStudentId, studentData);
+                    alert('学生编辑成功！');
+                }
+
+                // 关闭模态框并刷新表格
+                closeModal('studentModal');
+                renderStudentTable();
+                loadScoreFormOptions(); // 更新成绩表单的学生选项
+                renderScoreTable(); // 更新成绩表格
+            }
+        });
+
+        // 成绩表单提交
+        document.getElementById('scoreForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (validateScoreForm()) {
+                const courseId = document.getElementById('scoreCourse').value;
+                const studentId = document.getElementById('scoreStudent').value;
+                const scoreValue = parseInt(document.getElementById('scoreValue').value);
+
+                if (currentScoreKey.courseId === null) {
+                    // 添加成绩
+                    const addSuccess = DataStore.scores.add({courseId, studentId, score: scoreValue});
+                    if (addSuccess) {
+                        alert('成绩录入成功！');
+                    }
+                } else {
+                    // 编辑成绩
+                    DataStore.scores.update(courseId, studentId, scoreValue);
+                    alert('成绩修改成功！');
+                }
+
+                // 关闭模态框并刷新表格
+                closeModal('scoreModal');
+                renderScoreTable();
+                // 恢复下拉框可用状态
+                document.getElementById('scoreCourse').disabled = false;
+                document.getElementById('scoreStudent').disabled = false;
+            }
+        });
+
+        // ------------------------------ 页面初始化 ------------------------------
+        // 初始化数据存储
+        DataStore.init();
+
+        // 初始化页面显示
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始渲染各表格
+            renderCourseTable();
+            renderStudentTable();
+            renderScoreTable();
+            // 加载成绩表单选项
+            loadScoreFormOptions();
+            // 设置初始页面
+            showPage('course-management');
+        });
+    </script>
+</body>
+</html>
